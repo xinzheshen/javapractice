@@ -1,4 +1,4 @@
-package com.cienet.mats.util;
+package com.xxyy.mats.util;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

@@ -1,4 +1,4 @@
-package com.cienet.mats.util;
+package com.xxyy.mats.util;
 
 import org.apache.log4j.Logger;
 
@@ -19,7 +19,7 @@ public class Recorder {
     private ArrayList<Mixer.Info> mixerInfos;
     private AudioFormat audioFormat;
     private Map<String, DoRecord> doRecordMap = new HashMap<>();
-    private long timeOut = 10000;
+    private long timeOut = 60000;
     private String outputFolder;
     private StopRecordWithTimeOut stopRecordWithTimeOut;
 
@@ -83,7 +83,7 @@ public class Recorder {
 
     private AudioFormat getAudioFormat() {
         // 8000,11025,16000,22050,44100 采样率
-        float sampleRate = 8000F;
+        float sampleRate = 16000F;
         // 8,16 每个样本中的位数
         int sampleSizeInBits = 16;
         // 1,2 信道数（单声道为 1，立体声为 2，等等）
