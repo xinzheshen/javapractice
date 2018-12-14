@@ -1,4 +1,4 @@
-package com.xxyy.mats.util;
+package util;
 
 import org.apache.log4j.Logger;
 
@@ -12,7 +12,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class Player {
 
-    private static Logger logger = Logger.getLogger(Player.class);
+    private static Logger logger = Logger.getLogger(RecorderAudiosMeanwhile.class);
 
     private CountDownLatch latchStart;
     private CountDownLatch latchTimeOut;
@@ -29,24 +29,34 @@ public class Player {
         this.latchTimeOut = new CountDownLatch(mixerInfos.size());
     }
 
-    public void StartPlay() {
+    public void startPlay() {
         logger.info("===============Prepare for starting play ===============");
         File audioFile = new File(filename);
 
-        for (Mixer.Info playDeaviceInfo : mixerInfos) {
-            new DoPlay(audioFile, playDeaviceInfo).start();
+        for (Mixer.Info deviceInfo : mixerInfos) {
+            String deviceName = deviceInfo.getName().trim().toLowerCase();
+
+            DoPlay doPlay = new DoPlay(audioFile, deviceInfo);
+            doPlayMap.put(deviceName, doPlay);
+            doPlay.start();
+
+        }
+    }
+
+    public void stopPlay() {
+        logger.info("=============Prepare for Stopping play ===============");
+        for (Map.Entry<String, DoPlay> entry : doPlayMap.entrySet()) {
+            entry.getValue().closeDataLine();
         }
     }
 
     class DoPlay extends Thread {
 
-        File audioFile = null;
-        Mixer.Info playDeviceInfo = null;
+        private File audioFile = null;
+        private Mixer.Info playDeviceInfo = null;
 
-        SourceDataLine sourceDataLine = null;
-
-        AudioInputStream audioInputStream = null;
-
+        private SourceDataLine sourceDataLine = null;
+        private long startPlayTime = 0;
 
         public DoPlay(File wavFile, Mixer.Info playDeviceInfo) {
             this.audioFile = wavFile;
@@ -66,7 +76,6 @@ public class Player {
             // 获取音频编码对象
             AudioFormat audioFormat = audioInputStream.getFormat();
             // 设置数据输入
-            SourceDataLine sourceDataLine = null;
             try {
                 sourceDataLine = AudioSystem.getSourceDataLine(audioFormat, playDeviceInfo);
             } catch (LineUnavailableException e) {
@@ -81,7 +90,7 @@ public class Player {
                 e.printStackTrace();
             }
 
-            long startPlayTime = System.currentTimeMillis();
+            startPlayTime = System.currentTimeMillis();
             logger.info("Start play time : " + startPlayTime);
 
 
@@ -106,15 +115,21 @@ public class Player {
                         sourceDataLine.write(abData, 0, nBytesRead);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("fail to write data to sourceDataLine", e);
                 return;
             } finally {
-                // 清空数据缓冲,并关闭输入
-                long stopRecordTime = System.currentTimeMillis();
-                logger.info("audio duration : " + (stopRecordTime - startPlayTime));
-                sourceDataLine.drain();
-                sourceDataLine.close();
+                closeDataLine();
             }
         }
+
+        public void closeDataLine() {
+            if (sourceDataLine != null && sourceDataLine.isOpen()){
+                long stopPlayTime = System.currentTimeMillis();
+                sourceDataLine.stop();
+                sourceDataLine.close();
+                logger.info("audio duration : " + (stopPlayTime - startPlayTime));
+            }
+        }
+
     }
 }

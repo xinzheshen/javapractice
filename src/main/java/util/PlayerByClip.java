@@ -1,0 +1,136 @@
+package util;
+
+import org.apache.log4j.Logger;
+
+import javax.sound.sampled.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
+public class PlayerByClip {
+    private static Logger logger = Logger.getLogger(RecorderAudiosMeanwhile.class);
+
+    private CountDownLatch latchStart;
+    private CountDownLatch latchTimeOut;
+
+    private String filename;
+    private ArrayList<Mixer.Info> mixerInfos;
+    private Map<String, PlayerByClip.DoPlay> doPlayMap = new HashMap<>();
+
+
+    public PlayerByClip(ArrayList<Mixer.Info> mixerInfos, String filename) {
+        this.filename = filename;
+        this.mixerInfos = mixerInfos;
+        this.latchStart = new CountDownLatch(mixerInfos.size());
+        this.latchTimeOut = new CountDownLatch(mixerInfos.size());
+    }
+
+    public void startPlay() {
+        logger.info("===============Prepare for starting play ===============");
+        File audioFile = new File(filename);
+
+        for (Mixer.Info deviceInfo : mixerInfos) {
+            String deviceName = deviceInfo.getName().trim().toLowerCase();
+
+            float volumeAdjust =  (float)Math.random()*(Math.random()>0.5?1:-1)*10;
+            System.out.println("volumeAdjust : " + volumeAdjust);
+
+            PlayerByClip.DoPlay doPlay = new PlayerByClip.DoPlay(audioFile, deviceInfo, volumeAdjust);
+            doPlayMap.put(deviceName, doPlay);
+            doPlay.start();
+        }
+    }
+
+    public void stopPlay() {
+        logger.info("=============Prepare for Stopping play ===============");
+        for (Map.Entry<String, PlayerByClip.DoPlay> entry : doPlayMap.entrySet()) {
+            entry.getValue().closeDataLine();
+        }
+    }
+
+    class DoPlay extends Thread {
+
+        private File audioFile = null;
+        private Mixer.Info playDeviceInfo = null;
+
+        private Clip clip = null;
+        private long startPlayTime = 0;
+        // 如果音量减小10分贝， volumeAdjust 为 -10f，如果增加10分贝， 为 10f
+        private float volumeAdjust = 0f;
+
+        public DoPlay(File wavFile, Mixer.Info playDeviceInfo, float volumeAdjust) {
+            this.audioFile = wavFile;
+            this.playDeviceInfo = playDeviceInfo;
+            this.volumeAdjust = volumeAdjust;
+        }
+
+        public void run() {
+
+            // 获取音频输入流
+            AudioInputStream audioInputStream = null;
+
+            try {
+                audioInputStream = AudioSystem.getAudioInputStream(audioFile);
+            } catch (Exception e) {
+                logger.error("fail to get AudioInputStream", e);
+                return;
+            }
+
+            try {
+                clip = AudioSystem.getClip(playDeviceInfo);
+            } catch (LineUnavailableException e) {
+                logger.error("fail to get clip", e);
+                return;
+            }
+
+            try {
+                clip.open(audioInputStream);
+            } catch (Exception e) {
+                logger.error("fail to open clip", e);
+                return;
+            }
+
+            FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            float minVolume = gainControl.getMinimum();
+            float maxVolume = gainControl.getMaximum();
+            logger.info("volume before adjusted : "+ gainControl.getValue());
+            System.out.println("min volume before adjusted : "+ minVolume);
+            System.out.println("max volume before adjusted : "+ maxVolume);
+            if(volumeAdjust > maxVolume){
+                volumeAdjust = maxVolume;
+            }
+            else if (volumeAdjust < minVolume){
+                volumeAdjust = minVolume;
+            }
+            // adjust the audio volume
+            gainControl.setValue(-10f);
+            logger.info("volume after adjusted : "+ gainControl.getValue());
+
+            latchStart.countDown();
+            try {
+                latchStart.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            startPlayTime = System.currentTimeMillis();
+            logger.info("Start play time : " + startPlayTime);
+
+            clip.start();
+
+            closeDataLine();
+
+        }
+
+        public void closeDataLine() {
+            if (clip.isRunning()){
+                long stopPlayTime = System.currentTimeMillis();
+                clip.stop();
+                logger.info("audio duration : " + (stopPlayTime - startPlayTime));
+            }
+        }
+
+    }
+
+}

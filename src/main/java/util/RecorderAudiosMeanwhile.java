@@ -1,17 +1,17 @@
-package com.xxyy.mats.util;
+package util;
 
 import org.apache.log4j.Logger;
 
+import javax.sound.sampled.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import javax.sound.sampled.*;
 
-public class Recorder {
-    private static Logger logger = Logger.getLogger(Recorder.class);
+public class RecorderAudiosMeanwhile {
+    private static Logger logger = Logger.getLogger(RecorderAudiosMeanwhile.class);
 
     private CountDownLatch latchStart;
     private CountDownLatch latchTimeOut;
@@ -19,11 +19,11 @@ public class Recorder {
     private ArrayList<Mixer.Info> mixerInfos;
     private AudioFormat audioFormat;
     private Map<String, DoRecord> doRecordMap = new HashMap<>();
-    private long timeOut = 60000;
+    private long timeOut = 15000;
     private String outputFolder;
     private StopRecordWithTimeOut stopRecordWithTimeOut;
 
-    public Recorder(ArrayList<Mixer.Info> mixerInfos, String outputFolder, long timeOut) {
+    public RecorderAudiosMeanwhile(ArrayList<Mixer.Info> mixerInfos, String outputFolder, long timeOut) {
         this.timeOut = timeOut;
         this.outputFolder = outputFolder;
         this.mixerInfos = mixerInfos;
@@ -31,19 +31,19 @@ public class Recorder {
         this.latchTimeOut = new CountDownLatch(mixerInfos.size());
     }
 
-    public Recorder(ArrayList<Mixer.Info> mixerInfos, String outputFolder) {
+    public RecorderAudiosMeanwhile(ArrayList<Mixer.Info> mixerInfos, String outputFolder) {
         this.outputFolder = outputFolder;
         this.mixerInfos = mixerInfos;
         this.latchStart = new CountDownLatch(mixerInfos.size());
         this.latchTimeOut = new CountDownLatch(mixerInfos.size());
     }
 
-    public void StartRecord() {
+    public void startRecord() {
         logger.info("===============Prepare for starting record ===============");
         audioFormat = getAudioFormat();
-        for (Mixer.Info recordInfo : mixerInfos) {
+        for (Mixer.Info deviceInfo : mixerInfos) {
             try {
-                String deviceName = recordInfo.getName().trim().toLowerCase();
+                String deviceName = deviceInfo.getName().trim().toLowerCase();
 //                String[] deviceNames = deviceName.split("\\(");
 //                String wavFileName = "audio_" + deviceNames[deviceNames.length - 1] + ".wav";
                 String wavFileName = outputFolder + File.separator + deviceName + ".wav";
@@ -51,7 +51,7 @@ public class Recorder {
                 if (audioFile.exists()) {
                     audioFile.delete();
                 }
-                TargetDataLine targetDataLine = AudioSystem.getTargetDataLine(audioFormat, recordInfo);
+                TargetDataLine targetDataLine = AudioSystem.getTargetDataLine(audioFormat, deviceInfo);
 
                 RecordResult recordResult = new RecordResult(audioFile);
                 DoRecord doRecord = new DoRecord(targetDataLine, recordResult);
@@ -130,10 +130,12 @@ public class Recorder {
             } catch (Exception e) {
                 logger.error("fail to open voice resource", e);
                 recordResult.setErrorMessage("fail to open voice resource");
+            } finally {
+                logger.info("close dataline in finally");
+                closeDataLine();
             }
 
             logger.info("finished recording");
-
 
         }
 

@@ -1,4 +1,4 @@
-package com.xxyy.mats.util;
+package util;
 
 import org.apache.log4j.Logger;
 
