@@ -44,8 +44,6 @@ public class RecorderAudiosMeanwhile {
         for (Mixer.Info deviceInfo : mixerInfos) {
             try {
                 String deviceName = deviceInfo.getName().trim().toLowerCase();
-//                String[] deviceNames = deviceName.split("\\(");
-//                String wavFileName = "audio_" + deviceNames[deviceNames.length - 1] + ".wav";
                 String wavFileName = outputFolder + File.separator + deviceName + ".wav";
                 File audioFile = new File(wavFileName);
                 if (audioFile.exists()) {
@@ -63,8 +61,10 @@ public class RecorderAudiosMeanwhile {
             }
         }
 
+
         stopRecordWithTimeOut = new StopRecordWithTimeOut();
         stopRecordWithTimeOut.start();
+
     }
 
     public void stopRecord() {
