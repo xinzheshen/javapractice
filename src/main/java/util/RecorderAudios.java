@@ -7,41 +7,37 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
-public class RecorderAudiosMeanwhile {
-    private static Logger logger = Logger.getLogger(RecorderAudiosMeanwhile.class);
+public enum  RecorderAudios {
+    INSTANCE;
+
+    private static Logger logger = Logger.getLogger(RecorderAudios.class);
 
     private CountDownLatch latchStart;
     private CountDownLatch latchTimeOut;
-    private CyclicBarrier startBarrier;
-
 
     private ArrayList<Mixer.Info> mixerInfos;
     private AudioFormat audioFormat;
-    private Map<String, DoRecord> doRecordMap = new HashMap<>();
-    private long timeOut = 15000;
+    private Map<String, RecorderAudios.DoRecord> doRecordMap = new HashMap<>();
+    private long timeOut = 5000;
     private String outputFolder;
-    private StopRecordWithTimeOut stopRecordWithTimeOut;
+    private RecorderAudios.StopRecordWithTimeOut stopRecordWithTimeOut;
 
-    public RecorderAudiosMeanwhile(ArrayList<Mixer.Info> mixerInfos, String outputFolder, long timeOut) {
+    public void recorderAudios(ArrayList<Mixer.Info> mixerInfos, String outputFolder, long timeOut) {
         this.timeOut = timeOut;
         this.outputFolder = outputFolder;
         this.mixerInfos = mixerInfos;
         this.latchStart = new CountDownLatch(mixerInfos.size());
         this.latchTimeOut = new CountDownLatch(mixerInfos.size());
-        this.startBarrier = new CyclicBarrier(mixerInfos.size());
     }
 
-    public RecorderAudiosMeanwhile(ArrayList<Mixer.Info> mixerInfos, String outputFolder) {
+    public void recorderAudios(ArrayList<Mixer.Info> mixerInfos, String outputFolder) {
         this.outputFolder = outputFolder;
         this.mixerInfos = mixerInfos;
         this.latchStart = new CountDownLatch(mixerInfos.size());
         this.latchTimeOut = new CountDownLatch(mixerInfos.size());
-        this.startBarrier = new CyclicBarrier(mixerInfos.size());
     }
 
     public void startRecord() {
@@ -58,11 +54,9 @@ public class RecorderAudiosMeanwhile {
                 TargetDataLine targetDataLine = AudioSystem.getTargetDataLine(audioFormat, deviceInfo);
 
                 RecordResult recordResult = new RecordResult(audioFile);
-                DoRecord doRecord = new DoRecord(targetDataLine, recordResult);
+                RecorderAudios.DoRecord doRecord = new RecorderAudios.DoRecord(targetDataLine, recordResult);
                 doRecordMap.put(deviceName, doRecord);
-//                doRecord.start();
-                new Thread(doRecord, deviceName).start();
-
+                doRecord.start();
 
             } catch (Exception e) {
                 logger.error("fail to get data line", e);
@@ -70,7 +64,7 @@ public class RecorderAudiosMeanwhile {
         }
 
 
-        stopRecordWithTimeOut = new StopRecordWithTimeOut();
+        stopRecordWithTimeOut = new RecorderAudios.StopRecordWithTimeOut();
         stopRecordWithTimeOut.start();
 
     }
@@ -78,7 +72,7 @@ public class RecorderAudiosMeanwhile {
     public void stopRecord() {
         synchronized(this){
             logger.info("=============Prepare for Stopping record ===============");
-            for (Map.Entry<String, DoRecord> entry : doRecordMap.entrySet()) {
+            for (Map.Entry<String, RecorderAudios.DoRecord> entry : doRecordMap.entrySet()) {
                 entry.getValue().closeDataLine();
             }
             if(stopRecordWithTimeOut.isAlive()){
@@ -111,7 +105,6 @@ public class RecorderAudiosMeanwhile {
         private RecordResult recordResult = null;
         long startRecordTime = 0;
 
-
         public DoRecord(TargetDataLine targetDataLine, RecordResult recordResult) {
             this.targetDataLine = targetDataLine;
             this.recordResult = recordResult;
@@ -119,21 +112,12 @@ public class RecorderAudiosMeanwhile {
         }
 
         public void run() {
-//            latchStart.countDown();
+            latchStart.countDown();
 
             AudioFileFormat.Type fileType = null;
             fileType = AudioFileFormat.Type.WAVE;
-
             try {
-                startBarrier.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (BrokenBarrierException e) {
-                e.printStackTrace();
-            }
-
-            try {
-//                latchStart.await();
+                latchStart.await();
                 startRecordTime = System.currentTimeMillis();
                 logger.info("Start record time : " + startRecordTime);
                 recordResult.setStartRecordTime(startRecordTime);
@@ -180,4 +164,5 @@ public class RecorderAudiosMeanwhile {
             logger.info("The time out thread finish");
         }
     }
+
 }

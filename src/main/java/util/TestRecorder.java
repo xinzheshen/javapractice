@@ -25,6 +25,8 @@ public class TestRecorder {
             String outputPath = "D:\\sxz\\audio\\output";
             RecorderAudiosMeanwhile recorder = new RecorderAudiosMeanwhile(audioDevices, outputPath);
             recorder.startRecord();
+//            RecorderAudiosMeanwhile recorder2 = new RecorderAudiosMeanwhile(audioDevices, outputPath);
+//            recorder2.startRecord();
 
 
             try {

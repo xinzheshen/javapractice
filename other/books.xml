@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<books>
+    <book>
+        <title>HTTP权威指南</title>
+        <authors>
+            <author>
+                <firstName>David</firstName>
+                <lastName>Gourley</lastName>
+            </author>
+            <author>
+                <firstName>Brian</firstName>
+                <lastName>Totty</lastName>
+            </author>
+        </authors>
+        <publisher>人民邮电出版社</publisher>
+        <publishDate>2012-09-01</publishDate>
+        <isbn>9787115281487</isbn>
+        <price>109.00</price>
+    </book>
+</books>

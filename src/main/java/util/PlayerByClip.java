@@ -7,13 +7,16 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
 public class PlayerByClip {
     private static Logger logger = Logger.getLogger(RecorderAudiosMeanwhile.class);
 
     private CountDownLatch latchStart;
     private CountDownLatch latchTimeOut;
+    private CyclicBarrier startBarrier;
 
     private String filename;
     private ArrayList<Mixer.Info> mixerInfos;
@@ -25,6 +28,7 @@ public class PlayerByClip {
         this.mixerInfos = mixerInfos;
         this.latchStart = new CountDownLatch(mixerInfos.size());
         this.latchTimeOut = new CountDownLatch(mixerInfos.size());
+        this.startBarrier = new CyclicBarrier(mixerInfos.size());
     }
 
     public void startPlay() {
@@ -41,6 +45,8 @@ public class PlayerByClip {
             doPlayMap.put(deviceName, doPlay);
             doPlay.start();
         }
+
+        logger.info("start play end");
     }
 
     public void stopPlay() {
@@ -68,15 +74,7 @@ public class PlayerByClip {
 
         public void run() {
 
-            // 获取音频输入流
-            AudioInputStream audioInputStream = null;
-
-            try {
-                audioInputStream = AudioSystem.getAudioInputStream(audioFile);
-            } catch (Exception e) {
-                logger.error("fail to get AudioInputStream", e);
-                return;
-            }
+            logger.info("run");
 
             try {
                 clip = AudioSystem.getClip(playDeviceInfo);
@@ -85,13 +83,27 @@ public class PlayerByClip {
                 return;
             }
 
-            try {
+            clip.addLineListener(new LineListener() {
+                public void update(LineEvent e) {
+                    if (e.getType() == LineEvent.Type.STOP) {
+                        synchronized(clip) {
+                            clip.notify();
+                        }
+                    }
+                }
+            });
+
+
+            try (AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(audioFile)){
                 clip.open(audioInputStream);
             } catch (Exception e) {
                 logger.error("fail to open clip", e);
                 return;
             }
 
+            float level1 = clip.getLevel();
+            logger.info("level-1 :" + level1);
+//            FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.VOLUME);
             FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
             float minVolume = gainControl.getMinimum();
             float maxVolume = gainControl.getMaximum();
@@ -105,21 +117,39 @@ public class PlayerByClip {
                 volumeAdjust = minVolume;
             }
             // adjust the audio volume
-            gainControl.setValue(-10f);
-            logger.info("volume after adjusted : "+ gainControl.getValue());
 
-            latchStart.countDown();
+            gainControl.setValue(-5f);
+            logger.info("volume after adjusted : "+ gainControl.getValue());
+            float level2 = clip.getLevel();
+            logger.info("level-2 :" + level2);
+
+//            latchStart.countDown();
+//            try {
+//                latchStart.await();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
             try {
-                latchStart.await();
+                startBarrier.await();
             } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (BrokenBarrierException e) {
                 e.printStackTrace();
             }
             startPlayTime = System.currentTimeMillis();
             logger.info("Start play time : " + startPlayTime);
 
             clip.start();
-
-            closeDataLine();
+            synchronized (clip) {
+                try {
+                    clip.wait();
+                } catch (InterruptedException e) {
+                    logger.info("clip is interrupted");
+                    e.printStackTrace();
+                }
+            }
+            logger.info("over");
+            clip.close();
 
         }
 
@@ -127,10 +157,10 @@ public class PlayerByClip {
             if (clip.isRunning()){
                 long stopPlayTime = System.currentTimeMillis();
                 clip.stop();
+                clip.close();
                 logger.info("audio duration : " + (stopPlayTime - startPlayTime));
             }
         }
-
     }
 
 }
