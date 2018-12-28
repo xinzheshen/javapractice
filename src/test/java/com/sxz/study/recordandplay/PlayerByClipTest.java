@@ -1,11 +1,9 @@
-package util;
+package com.sxz.study.recordandplay;
 
 import org.junit.Test;
 
 import javax.sound.sampled.Mixer;
 import java.util.ArrayList;
-
-import static org.junit.Assert.*;
 
 public class PlayerByClipTest {
 
