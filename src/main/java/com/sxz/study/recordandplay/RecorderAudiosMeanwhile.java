@@ -138,7 +138,8 @@ public class RecorderAudiosMeanwhile {
                 logger.info("Start record time : " + startRecordTime);
                 recordResult.setStartRecordTime(startRecordTime);
 
-                targetDataLine.open(audioFormat);
+//                targetDataLine.open(audioFormat);
+                targetDataLine.open();
                 targetDataLine.start();
 
 //                latchStop.countDown();

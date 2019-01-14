@@ -16,28 +16,32 @@ public class TestRecorder {
 //        if(Sinput.equals("y")){
 
             String deviceLable1 = "microphone";
-            String deviceLable2 = "jack";
+            String deviceLable2 = "11jack";
 
 
-            GetAudioDevice getAudioDevice = new GetAudioDevice(deviceLable1, deviceLable2);
-            ArrayList<Mixer.Info> audioDevices = getAudioDevice.getAudioDevice();
+            for(int i = 0; i < 50; i++){
 
-            String outputPath = "D:\\sxz\\audio\\output";
-            RecorderAudiosMeanwhile recorder = new RecorderAudiosMeanwhile(audioDevices, outputPath);
-            recorder.startRecord();
-//            RecorderAudiosMeanwhile recorder2 = new RecorderAudiosMeanwhile(audioDevices, outputPath);
-//            recorder2.startRecord();
+                System.out.println(i);
+                  GetAudioDevice getAudioDevice = new GetAudioDevice(deviceLable1, deviceLable2);
+                ArrayList<Mixer.Info> audioDevices = getAudioDevice.getAudioDevice();
+
+                String outputPath = "D:\\sxz\\audio\\output";
+                RecorderAudiosMeanwhile recorder = new RecorderAudiosMeanwhile(audioDevices, outputPath);
+                recorder.startRecord();
+    //            RecorderAudiosMeanwhile recorder2 = new RecorderAudiosMeanwhile(audioDevices, outputPath);
+    //            recorder2.startRecord();
 
 
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                recorder.stopRecord();
+
+                logger.info("End");
             }
-
-            recorder.stopRecord();
-
-            logger.info("End");
 
 //        }
 //        Scanner input_2 = new Scanner(System.in);

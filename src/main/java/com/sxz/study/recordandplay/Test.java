@@ -6,6 +6,12 @@ public class Test {
     public static Map<Integer, Double> Probs = new TreeMap<Integer, Double>();
     public static void main(String[] args) {
 
+        String str = "";
+        if(! str.isEmpty()){
+            System.out.println("not empty");
+        }
+        System.out.println(str.length());
+
         double x = 16;
         float y = 17F;
         if(y > x){

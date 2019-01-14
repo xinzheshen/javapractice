@@ -13,7 +13,7 @@ public class TestPlayerByClip {
 
 //        String filePath = "D:\\sxz\\audio\\output\\microphone (ce-link).wav";
 //        String filePath = "D:\\sxz\\audio\\output\\microphone (3- usb audio device.wav";
-        String filePath = "D:\\sxz\\audio\\output\\untitled.wav";
+        String filePath = "D:\\sxz\\audio\\jack mic (realtek audio).wav";
 
 //        Player player = new Player(audioDevices, filePath);
 
@@ -29,6 +29,7 @@ public class TestPlayerByClip {
         }
 
         player.stopPlay();
+        System.out.println("over");
 
     }
 
