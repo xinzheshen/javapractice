@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            elementFormDefault="qualified" attributeFormDefault="unqualified" jaxb:extensionBindingPrefixes="xjc" jaxb:version="2.1">
+
+    <xsd:annotation>
+        <xsd:appinfo>
+            <jaxb:globalBindings>
+                <xjc:serializable uid="1" />
+            </jaxb:globalBindings>
+        </xsd:appinfo>
+    </xsd:annotation>
+
+    <xsd:element name="Person">
+        <xsd:complexType>
+            <xsd:attribute name="name" type="xsd:string" use="required" />
+            <xsd:attribute name="gender" type="Gender" use="optional" />
+            <xsd:attribute name="age" type="xsd:int"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!--<xsd:element name="AddonType">-->
+        <!--<xsd:complexType>-->
+            <!--<xsd:attribute name="addonType" type="addonsType" use="required" />-->
+        <!--</xsd:complexType>-->
+    <!--</xsd:element>-->
+
+    <xsd:simpleType name="Gender">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="male"/>
+            <xsd:enumeration value="female"/>
+            <!--<xsd:enumeration value="I2C" >-->
+                <!--<xsd:annotation>-->
+                    <!--<xsd:appinfo>-->
+                        <!--<jaxb:typesafeEnumMember name="I2C" />-->
+                    <!--</xsd:appinfo>-->
+                <!--</xsd:annotation>-->
+            <!--</xsd:enumeration>-->
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

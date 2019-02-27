@@ -15,7 +15,38 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
+configurations {
+    jaxb
+}
+
 dependencies {
     compile group: 'log4j', name: 'log4j', version: '1.2.17'
     testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    jaxb group: 'com.sun.xml.bind', name: 'jaxb-xjc', version: '2.2.7'
+    jaxb group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '2.2.7'
+
+}
+
+project.ext.generatedSrcDir = file("${rootProject.projectDir}/src/main/gensrc")
+
+task jaxb {
+    project.ext.generatedSrcDir.deleteDir();
+    System.setProperty('javax.xml.accessExternalSchema', 'file')
+    project.ext.generatedSrcDir.mkdirs()
+    ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.jaxb.asPath)
+    doLast {
+        def packageName = "com.sxz.study.xsd"
+        ext.packagePath = packageName.replaceAll("\\.", "/")
+        ext.destDir = new File(project.ext.generatedSrcDir, packagePath)
+        //outputs.dir destDir
+        ant.xjc(package: packageName, extension: "true", destdir: project.ext.generatedSrcDir) {
+            schema(dir: "${rootProject.projectDir}", includes: "**/person.xsd")
+            arg(value: "-disableXmlSecurity")
+        }
+    }
+    task generateSources() {}
+    sourceSets.main.java.srcDirs += project.ext.generatedSrcDir
+    generateSources.dependsOn jaxb
+    compileJava.dependsOn generateSources
 }
