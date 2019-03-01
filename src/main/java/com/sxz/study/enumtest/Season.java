@@ -1,4 +1,4 @@
-package com.sxz.study;
+package com.sxz.study.enumtest;
 
 public enum Season {
     SPRING,SUMMER,AUTUMN,WINTER;
