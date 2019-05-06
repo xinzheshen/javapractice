@@ -26,6 +26,8 @@ public class Test {
 //        String join = String.join(",", list1);
 //        System.out.println(join);
 
+        Float sampleRate = 16000F;
+        System.out.println("float is " + sampleRate);
 
         String data = "test**********";
         Boolean isCyclic = false;

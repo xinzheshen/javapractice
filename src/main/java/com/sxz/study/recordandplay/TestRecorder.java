@@ -8,40 +8,37 @@ import java.util.ArrayList;
 public class TestRecorder {
     private static Logger logger = Logger.getLogger(TestRecorder.class);
 
-    public static void main(String args[]){
+    public static void main(String args[]) {
         logger.info("Start to test");
 //        System.out.println("y开始n结束");
 //        Scanner input = new Scanner(System.in);
 //        String Sinput = input.next();
 //        if(Sinput.equals("y")){
 
-            String deviceLable1 = "microphone";
-            String deviceLable2 = "11jack";
+        String deviceLable1 = "microphone";
+        String deviceLable2 = "jack";
+        ArrayList<String> audioDevices = new ArrayList<>();
+        audioDevices.add("Microphone (2- CE-LINK)");
+        audioDevices.add("Jack Mic (Realtek Audio)");
 
 
-            for(int i = 0; i < 50; i++){
-
-                System.out.println(i);
-                  GetAudioDevice getAudioDevice = new GetAudioDevice(deviceLable1, deviceLable2);
-                ArrayList<Mixer.Info> audioDevices = getAudioDevice.getAudioDevice();
-
-                String outputPath = "D:\\sxz\\audio\\output";
-                RecorderAudiosMeanwhile recorder = new RecorderAudiosMeanwhile(audioDevices, outputPath);
-                recorder.startRecord();
-    //            RecorderAudiosMeanwhile recorder2 = new RecorderAudiosMeanwhile(audioDevices, outputPath);
-    //            recorder2.startRecord();
+        String outputPath = "D:\\sxz\\audio\\output";
+        RecorderAudiosMeanwhileByFFmpeg recorder = new RecorderAudiosMeanwhileByFFmpeg(audioDevices, outputPath);
+        recorder.startRecord();
+        //            RecorderAudiosMeanwhile recorder2 = new RecorderAudiosMeanwhile(audioDevices, outputPath);
+        //            recorder2.startRecord();
 
 
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-                recorder.stopRecord();
+        recorder.stopRecord();
 
-                logger.info("End");
-            }
+        logger.info("End");
+    }
 
 //        }
 //        Scanner input_2 = new Scanner(System.in);
@@ -49,6 +46,5 @@ public class TestRecorder {
 //        if(Sinput_2.equals("n")){
 //            logger.info("End");
 //        }
-    }
 
 }

@@ -90,6 +90,9 @@ public class PlayerByClip {
                             clip.notify();
                         }
                     }
+                    if (e.getType() == LineEvent.Type.START) {
+                       logger.debug("start time:" + System.currentTimeMillis());
+                    }
                 }
             });
 
@@ -140,14 +143,14 @@ public class PlayerByClip {
             logger.info("Start play time : " + startPlayTime);
 
             clip.start();
-            synchronized (clip) {
-                try {
-                    clip.wait();
-                } catch (InterruptedException e) {
-                    logger.info("clip is interrupted");
-                    e.printStackTrace();
-                }
-            }
+//            synchronized (clip) {
+//                try {
+//                    clip.wait();
+//                } catch (InterruptedException e) {
+//                    logger.info("clip is interrupted");
+//                    e.printStackTrace();
+//                }
+//            }
             logger.info("over");
             clip.close();
 

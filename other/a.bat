@@ -1,0 +1,1 @@
+ffmpeg -f dshow -i audio="Microphone (2- CE-LINK)" -ar 16000 -ac 1 -af silencedetect=noise=-50dB:d=1 -t 00:00:10 out\\test5.wav
